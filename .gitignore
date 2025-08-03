@@ -1,0 +1,48 @@
+# .gitignore for Telegram Music Bot
+
+# Sensitive Credentials
+.env
+.env.*
+config.py
+secrets/
+
+# Downloaded Media
+downloads/*
+!downloads/.gitkeep  # (Optional: To keep empty folder structure)
+
+# Logs
+logs/*
+!logs/.gitkeep
+
+# Database files (SQLite)
+*.db
+*.db-journal
+
+# Cookies/Session files
+cookies.txt
+*.session
+*.session-journal
+
+# Python cache and virtualenv
+__pycache__/
+*.py[cod]
+venv/
+env/
+.venv/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Backups
+backups/*
+!backups/.gitkeep
+
+# Byte-compiled / optimized files
+*.pyc

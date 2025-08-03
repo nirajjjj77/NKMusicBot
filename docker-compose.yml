@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  musicbot:
+    build: .
+    container_name: telegram-music-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./downloads:/app/downloads
+      - ./logs:/app/logs
+      - ./backups:/app/backups
+      - ./musicbot.db:/app/musicbot.db
+    networks:
+      - musicbot-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sqlite3; sqlite3.connect('musicbot.db').close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Redis for caching (if you want to add caching later)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: musicbot-redis
+  #   restart: unless-stopped
+  #   networks:
+  #     - musicbot-network
+  #   volumes:
+  #     - redis_data:/data
+
+  # Optional: PostgreSQL database (instead of SQLite)
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: musicbot-postgres
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_DB: musicbot
+  #     POSTGRES_USER: musicbot
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-your_secure_password}
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - musicbot-network
+
+networks:
+  musicbot-network:
+    driver: bridge
