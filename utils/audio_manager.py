@@ -7,20 +7,8 @@ import logging
 import random
 from typing import Dict, List, Optional, Any
 from pytgcalls import PyTgCalls
-import pytgcalls.types
-print("Available in pytgcalls.types:", dir(pytgcalls.types))
-
-try:
-    import pytgcalls.types.input_stream
-    print("Available in input_stream:", dir(pytgcalls.types.input_stream))
-except:
-    print("input_stream not available")
-
-try:
-    import pytgcalls.types.stream
-    print("Available in stream:", dir(pytgcalls.types.stream))
-except:
-    print("stream not available")
+from pytgcalls.types.stream import MediaStream as AudioPiped
+from pytgcalls.types.stream import AudioQuality as HighQualityAudio
 from pyrogram import Client
 from config import Config
 
@@ -44,7 +32,9 @@ class AudioManager:
         self.paused_chats: set = set()
         
         # Initialize PyTgCalls
-        self.pytgcalls.on_stream_end()(self._on_stream_end)
+        @self.pytgcalls.on_stream_end()
+        async def stream_end_handler(client, update):
+            await self._on_stream_end(client, update)
         
     async def initialize(self):
         """Initialize the audio manager"""
