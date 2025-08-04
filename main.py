@@ -66,7 +66,7 @@ class MusicBot:
         self.app.add_handler(MessageHandler(
             filters.StatusUpdate.VIDEO_CHAT_STARTED |
             filters.StatusUpdate.VIDEO_CHAT_ENDED |
-            filters.StatusUpdate.VOICE_CHAT_PARTICIPANTS_INVITED,
+            filters.StatusUpdate.VIDEO_CHAT_PARTICIPANTS_INVITED,
             self.music_handler.voice_chat_update
         ))
         
