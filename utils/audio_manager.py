@@ -7,23 +7,20 @@ import logging
 import random
 from typing import Dict, List, Optional, Any
 from pytgcalls import PyTgCalls
+import pytgcalls.types
+print("Available in pytgcalls.types:", dir(pytgcalls.types))
 
-# Try different import paths for different PyTgCalls versions
 try:
-    from pytgcalls.types.input_stream import AudioPiped
-    from pytgcalls.types.input_stream.quality import HighQualityAudio
-except ImportError:
-    try:
-        from pytgcalls.types.stream import AudioPiped
-        from pytgcalls.types.stream.quality import HighQualityAudio
-    except ImportError:
-        try:
-            # For py-tgcalls v1.x
-            from pytgcalls.types import AudioParameters as HighQualityAudio
-            from pytgcalls.types import MediaStream as AudioPiped
-        except ImportError:
-            # Final fallback
-            from pytgcalls import AudioPiped, HighQualityAudio
+    import pytgcalls.types.input_stream
+    print("Available in input_stream:", dir(pytgcalls.types.input_stream))
+except:
+    print("input_stream not available")
+
+try:
+    import pytgcalls.types.stream
+    print("Available in stream:", dir(pytgcalls.types.stream))
+except:
+    print("stream not available")
 from pyrogram import Client
 from config import Config
 
