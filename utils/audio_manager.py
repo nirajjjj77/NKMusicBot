@@ -7,8 +7,16 @@ import logging
 import random
 from typing import Dict, List, Optional, Any
 from pytgcalls import PyTgCalls
-from pytgcalls.types import AudioPiped, VideoPiped
-from pytgcalls.types.quality import HighQualityAudio
+try:
+    from pytgcalls.types.input_stream import AudioPiped
+    from pytgcalls.types.input_stream.quality import HighQualityAudio
+except ImportError:
+    try:
+        from pytgcalls.types.stream import AudioPiped
+        from pytgcalls.types.stream.quality import HighQualityAudio
+    except ImportError:
+        # Fallback for older versions
+        from pytgcalls.types import AudioPiped, HighQualityAudio
 from pyrogram import Client
 from config import Config
 
