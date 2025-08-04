@@ -32,14 +32,17 @@ class AudioManager:
         self.paused_chats: set = set()
         
         # Initialize PyTgCalls
-        @self.pytgcalls.on_stream_end()
-        async def stream_end_handler(client, update):
-            await self._on_stream_end(client, update)
+        # Event handlers will be set up after initialization
+        pass
         
     async def initialize(self):
         """Initialize the audio manager"""
         await self.pyrogram_client.start()
         await self.pytgcalls.start()
+
+        # Set up event handlers after PyTgCalls is started
+        self.pytgcalls.add_handler(self._on_stream_end, 2)  # 2 = STREAM_END_HANDLER
+    
         logger.info("Audio manager initialized")
         
     async def cleanup(self):
