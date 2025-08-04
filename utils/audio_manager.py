@@ -68,21 +68,18 @@ class AudioManager:
                 self.loop_modes[chat_id] = "off"
                 self.volumes[chat_id] = Config.DEFAULT_VOLUME
                 
-            # Try to join the voice chat with silent audio initially
-            await self.pytgcalls.join_call(
-                chat_id,
-                AudioPiped("https://www.soundjay.com/misc/sounds/bell-ringing-05.wav")
-            )
+            # Use the start method instead of join_group_call
+            await self.pytgcalls.start(chat_id)
             logger.info(f"Joined voice chat in {chat_id}")
             
         except Exception as e:
             logger.error(f"Failed to join voice chat {chat_id}: {e}")
             raise
-            
+    
     async def leave_voice_chat(self, chat_id: int):
         """Leave voice chat"""
         try:
-            await self.pytgcalls.leave_call(chat_id)
+            await self.pytgcalls.stop()
             # Clean up chat state
             self.queues.pop(chat_id, None)
             self.current_tracks.pop(chat_id, None)
