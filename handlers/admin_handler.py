@@ -11,6 +11,8 @@ from config import Config
 from utils.database import Database
 from utils.decorators import admin_only
 
+import os
+
 logger = logging.getLogger(__name__)
 
 class AdminHandler:
