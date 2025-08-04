@@ -6,9 +6,9 @@ import asyncio
 import logging
 import random
 from typing import Dict, List, Optional, Any
-from pytgcalls import PyTgCalls, StreamType
-from pytgcalls.types.input_stream import AudioPiped
-from pytgcalls.types.input_stream.quality import HighQualityAudio
+from pytgcalls import PyTgCalls
+from pytgcalls.types import AudioPiped, VideoPiped
+from pytgcalls.types.quality import HighQualityAudio
 from pyrogram import Client
 from config import Config
 
@@ -69,8 +69,8 @@ class AudioManager:
                 AudioPiped(
                     "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
                     HighQualityAudio()
-                ),
-                stream_type=StreamType().local_stream
+                )
+                # Remove the stream_type line entirely
             )
             logger.info(f"Joined voice chat in {chat_id}")
             
