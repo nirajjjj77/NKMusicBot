@@ -6,7 +6,8 @@ import asyncio
 import logging
 import random
 from typing import Dict, List, Optional, Any
-from pytgcalls import PyTgCalls, StreamType
+from pytgcalls import PyTgCalls
+from pytgcalls.types import StreamType
 from pytgcalls.types.input_stream import AudioPiped
 from pytgcalls.types.input_stream.quality import HighQualityAudio
 from pyrogram import Client
