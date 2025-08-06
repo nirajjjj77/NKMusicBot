@@ -2,20 +2,26 @@
 Audio Manager - Handles all audio playback and queue management
 """
 
-import asyncio
 import logging
 import random
+import asyncio
 from typing import Dict, List, Optional
-from pytgcalls import PyTgCalls
-# from pytgcalls.types.stream import StreamType
-from pytgcalls.types.stream import AudioPiped
-from pytgcalls.types.stream import AudioQuality as HighQualityAudio
 
+# --- DEBUG START ---
+import pytgcalls
+import pytgcalls.types as types_module
 import pytgcalls.types.stream as stream_module
-print("🔍 Available in pytgcalls.types.stream:")
-print(dir(stream_module))
 
-from pytgcalls.types.stream import StreamEnded
+print("🔍 pytgcalls version:", getattr(pytgcalls, "__version__", "unknown"))
+
+print("\n📦 pytgcalls.types:")
+print(dir(types_module))
+
+print("\n📦 pytgcalls.types.stream:")
+print(dir(stream_module))
+# --- DEBUG END ---
+
+from pytgcalls import PyTgCalls
 from pyrogram import Client
 from config import Config
 
