@@ -7,7 +7,7 @@ import logging
 import random
 from typing import Dict, List, Optional
 from pytgcalls import PyTgCalls
-from pytgcalls.types import StreamType
+from pytgcalls.types.stream import StreamType
 from pytgcalls.types.stream import AudioPiped
 from pytgcalls.types.stream import AudioQuality as HighQualityAudio
 from pytgcalls.types.stream import StreamEnded
