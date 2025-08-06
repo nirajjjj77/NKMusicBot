@@ -5,10 +5,12 @@ Audio Manager - Handles all audio playback and queue management
 import asyncio
 import logging
 import random
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional
 from pytgcalls import PyTgCalls
-from pytgcalls.types.stream import MediaStream as AudioPiped
+from pytgcalls.types import StreamType
+from pytgcalls.types.stream import AudioPiped
 from pytgcalls.types.stream import AudioQuality as HighQualityAudio
+from pytgcalls.types.stream import StreamEnded
 from pyrogram import Client
 from config import Config
 
@@ -31,17 +33,15 @@ class AudioManager:
         self.volumes: Dict[int, int] = {}
         self.paused_chats: set = set()
         
-        # Initialize PyTgCalls
-        # Event handlers will be set up after initialization
-        pass
-        
     async def initialize(self):
         """Initialize the audio manager"""
         await self.pyrogram_client.start()
         await self.pytgcalls.start()
 
-        # Set up event handlers after PyTgCalls is started
-        # self.pytgcalls.add_handler(self._on_stream_end, 2)  # 2 = STREAM_END_HANDLER
+        # Listen for stream ended events
+        @self.pytgcalls.on_stream_end()
+        async def stream_end_handler(_, update: StreamEnded):
+            await self._on_stream_end(_, update)
     
         logger.info("Audio manager initialized")
         
@@ -58,7 +58,7 @@ class AudioManager:
         except:
             return False
             
-    async def join_voice_chat(self, chat_id: int):
+    async def join_voice_chat(self, chat_id: int, file_path: Optional[str] = None):
         """Join voice chat"""
         try:
             # Initialize chat state
@@ -68,8 +68,15 @@ class AudioManager:
                 self.loop_modes[chat_id] = "off"
                 self.volumes[chat_id] = Config.DEFAULT_VOLUME
                 
-            # Use the start method instead of join_group_call
-            await self.pytgcalls.start(chat_id)
+            if not file_path:
+                # Join with silence if no track yet
+                file_path = "silence.mp3"  # Provide a silent placeholder file
+            
+            await self.pytgcalls.join_group_call(
+                chat_id,
+                AudioPiped(file_path, HighQualityAudio()),
+                stream_type=StreamType().local_stream
+            )
             logger.info(f"Joined voice chat in {chat_id}")
             
         except Exception as e:
@@ -79,7 +86,7 @@ class AudioManager:
     async def leave_voice_chat(self, chat_id: int):
         """Leave voice chat"""
         try:
-            await self.pytgcalls.stop()
+            await self.pytgcalls.leave_group_call(chat_id)
             # Clean up chat state
             self.queues.pop(chat_id, None)
             self.current_tracks.pop(chat_id, None)
@@ -114,13 +121,10 @@ class AudioManager:
         self.current_tracks[chat_id] = next_track
         
         try:
-            # Change stream to new track
             await self.pytgcalls.change_stream(
                 chat_id,
-                AudioPiped(next_track['file_path'])
+                AudioPiped(next_track['file_path'], HighQualityAudio())
             )
-            
-            # Set volume
             volume = self.volumes.get(chat_id, Config.DEFAULT_VOLUME)
             await self.pytgcalls.change_volume_call(chat_id, volume)
             
@@ -135,7 +139,7 @@ class AudioManager:
         """Pause playback"""
         try:
             if await self.is_in_voice_chat(chat_id) and chat_id not in self.paused_chats:
-                await self.pytgcalls.pause_call(chat_id)
+                await self.pytgcalls.pause_stream(chat_id)
                 self.paused_chats.add(chat_id)
                 return True
         except Exception as e:
@@ -146,7 +150,7 @@ class AudioManager:
         """Resume playback"""
         try:
             if chat_id in self.paused_chats:
-                await self.pytgcalls.resume_call(chat_id)
+                await self.pytgcalls.resume_stream(chat_id)
                 self.paused_chats.remove(chat_id)
                 return True
         except Exception as e:
@@ -222,7 +226,7 @@ class AudioManager:
         logger.info(f"Voice chat ended in {chat_id}")
         await self.stop(chat_id)
         
-    async def _on_stream_end(self, client, update):
+    async def _on_stream_end(self, client, update: StreamEnded):
         """Handle stream end event"""
         chat_id = update.chat_id
         logger.info(f"Stream ended in chat {chat_id}")
@@ -236,7 +240,7 @@ class AudioManager:
             try:
                 await self.pytgcalls.change_stream(
                     chat_id,
-                    AudioPiped(current_track['file_path'])
+                    AudioPiped(current_track['file_path'], HighQualityAudio())
                 )
             except Exception as e:
                 logger.error(f"Error repeating song in {chat_id}: {e}")
