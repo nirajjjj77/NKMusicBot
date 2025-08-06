@@ -10,6 +10,10 @@ class Config:
     BOT_TOKEN = os.getenv("BOT_TOKEN", "")
     API_ID = int(os.getenv("API_ID", "0"))
     API_HASH = os.getenv("API_HASH", "")
+
+    # User session string (for voice chat functionality)
+    # Generate this using the generate_session.py script
+    USER_SESSION_STRING = os.getenv("USER_SESSION_STRING", "")
     
     # Database
     DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///musicbot.db")

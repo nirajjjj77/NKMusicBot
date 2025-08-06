@@ -1,5 +1,6 @@
 """
 Audio Manager - Handles all audio playback and queue management
+Updated to work with user accounts for voice chat functionality
 """
 
 import os
@@ -19,12 +20,31 @@ logger = logging.getLogger(__name__)
 
 class AudioManager:
     def __init__(self):
-        self.pyrogram_client = Client(
-            "musicbot",
+        # Use user account for voice chat functionality
+        # You need USER_SESSION_STRING instead of BOT_TOKEN
+        if hasattr(Config, 'USER_SESSION_STRING') and Config.USER_SESSION_STRING:
+            self.pyrogram_client = Client(
+                "musicbot_user",
+                session_string=Config.USER_SESSION_STRING
+            )
+        else:
+            # Fallback to API credentials (you'll need to generate session)
+            self.pyrogram_client = Client(
+                "musicbot_user",
+                api_id=Config.API_ID,
+                api_hash=Config.API_HASH,
+                # Remove bot_token - this is for user accounts
+            )
+        
+        # Separate bot client for regular bot operations
+        self.bot_client = Client(
+            "musicbot_bot",
             api_id=Config.API_ID,
             api_hash=Config.API_HASH,
             bot_token=Config.BOT_TOKEN
         )
+        
+        # Use user client for PyTgCalls
         self.pytgcalls = PyTgCalls(self.pyrogram_client)
         
         # Chat states
@@ -36,7 +56,9 @@ class AudioManager:
         
     async def initialize(self):
         """Initialize the audio manager"""
+        # Start both clients
         await self.pyrogram_client.start()
+        await self.bot_client.start()
         await self.pytgcalls.start()
 
         # Listen for stream ended events
@@ -45,12 +67,13 @@ class AudioManager:
             if isinstance(update, StreamEnded):
                 await self._on_stream_end(_, update)
     
-        logger.info("Audio manager initialized")
+        logger.info("Audio manager initialized with user account")
         
     async def cleanup(self):
         """Cleanup resources"""
         await self.pytgcalls.stop()
         await self.pyrogram_client.stop()
+        await self.bot_client.stop()
         
     async def is_in_voice_chat(self, chat_id: int) -> bool:
         """Check if bot is in voice chat"""
@@ -60,23 +83,29 @@ class AudioManager:
         except:
             return False
             
+    async def check_voice_chat_exists(self, chat_id: int) -> bool:
+        """Check if there's an active voice chat in the group"""
+        try:
+            from pyrogram.raw.functions.phone import GetGroupCall
+            from pyrogram.raw.types import InputGroupCall
+            
+            # Get chat info to find group call
+            chat = await self.pyrogram_client.get_chat(chat_id)
+            if hasattr(chat, 'call') and chat.call:
+                return True
+            return False
+        except Exception as e:
+            logger.error(f"Error checking voice chat existence: {e}")
+            return False
+            
     async def join_voice_chat(self, chat_id: int, file_path: Optional[str] = None):
-        """Join voice chat (with debug logging)"""
+        """Join voice chat - requires existing voice chat"""
         try:
             logger.info(f"[DEBUG] Attempting to join VC in chat_id={chat_id}")
     
-            from pyrogram.raw.functions.phone import GetGroupCall
-
-            try:
-                call_info = await self.pyrogram_client.invoke(
-                    GetGroupCall(
-                        peer=await self.pyrogram_client.resolve_peer(chat_id),
-                        limit=1
-                   )
-                )
-                logger.info(f"[DEBUG] Active group call info: {call_info}")
-            except Exception as e:
-                logger.error(f"[DEBUG] No active group call found for chat_id={chat_id} — {e}")
+            # Check if voice chat exists
+            if not await self.check_voice_chat_exists(chat_id):
+                raise Exception("No active voice chat found. Please start a voice chat in the group first!")
     
             # Initialize chat state
             if chat_id not in self.queues:
@@ -88,8 +117,10 @@ class AudioManager:
             if not file_path:
                 file_path = os.path.join(os.path.dirname(__file__), '../assets/silence.mp3')
     
-            logger.info(f"[DEBUG] Calling pytgcalls.play() with file={file_path}")
-            await self.pytgcalls.play(
+            logger.info(f"[DEBUG] Joining existing voice chat with file={file_path}")
+            
+            # Join existing voice chat (don't create)
+            await self.pytgcalls.join_group_call(
                 chat_id,
                 AudioPiped(file_path, HighQualityAudio.HIGH)
             )
@@ -97,7 +128,7 @@ class AudioManager:
             volume = self.volumes.get(chat_id, Config.DEFAULT_VOLUME)
             await self.pytgcalls.change_volume_call(chat_id, volume)
     
-            logger.info(f"Joined voice chat in {chat_id}")
+            logger.info(f"Successfully joined voice chat in {chat_id}")
     
         except Exception as e:
             logger.error(f"Failed to join voice chat {chat_id}: {e}", exc_info=True)
@@ -148,8 +179,8 @@ class AudioManager:
                     AudioPiped(next_track['file_path'], HighQualityAudio.HIGH)
                 )
             else:
-                # Not in VC yet, start playing (this joins too)
-                await self.pytgcalls.play(
+                # Join voice chat and start playing
+                await self.pytgcalls.join_group_call(
                     chat_id,
                     AudioPiped(next_track['file_path'], HighQualityAudio.HIGH)
                 )
@@ -165,6 +196,8 @@ class AudioManager:
             logger.error(f"Error playing track in {chat_id}: {e}")
             return False
             
+    # ... rest of the methods remain the same ...
+    
     async def pause(self, chat_id: int) -> bool:
         """Pause playback"""
         try:
