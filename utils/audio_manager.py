@@ -7,9 +7,14 @@ import logging
 import random
 from typing import Dict, List, Optional
 from pytgcalls import PyTgCalls
-from pytgcalls.types.stream import StreamType
+# from pytgcalls.types.stream import StreamType
 from pytgcalls.types.stream import AudioPiped
 from pytgcalls.types.stream import AudioQuality as HighQualityAudio
+
+import pytgcalls.types.stream as stream_module
+print("🔍 Available in pytgcalls.types.stream:")
+print(dir(stream_module))
+
 from pytgcalls.types.stream import StreamEnded
 from pyrogram import Client
 from config import Config
