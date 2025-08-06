@@ -6,22 +6,10 @@ import logging
 import random
 import asyncio
 from typing import Dict, List, Optional
-
-# --- DEBUG START ---
-import pytgcalls
-import pytgcalls.types as types_module
-import pytgcalls.types.stream as stream_module
-
-print("🔍 pytgcalls version:", getattr(pytgcalls, "__version__", "unknown"))
-
-print("\n📦 pytgcalls.types:")
-print(dir(types_module))
-
-print("\n📦 pytgcalls.types.stream:")
-print(dir(stream_module))
-# --- DEBUG END ---
-
 from pytgcalls import PyTgCalls
+from pytgcalls.types import MediaStream as AudioPiped
+from pytgcalls.types.stream import AudioQuality as HighQualityAudio
+from pytgcalls.types import StreamEnded
 from pyrogram import Client
 from config import Config
 
@@ -85,8 +73,7 @@ class AudioManager:
             
             await self.pytgcalls.join_group_call(
                 chat_id,
-                AudioPiped(file_path, HighQualityAudio()),
-                stream_type=StreamType().local_stream
+                AudioPiped(file_path, HighQualityAudio())
             )
             logger.info(f"Joined voice chat in {chat_id}")
             
