@@ -60,31 +60,49 @@ class AudioManager:
             return False
             
     async def join_voice_chat(self, chat_id: int, file_path: Optional[str] = None):
-        """Join voice chat"""
+        """Join voice chat (with debug logging)"""
         try:
+            logger.info(f"[DEBUG] Attempting to join VC in chat_id={chat_id}")
+    
+            # Check if there is an active group call
+            try:
+                from pyrogram.raw.functions.phone import GetGroupCall
+                from pyrogram.raw.types import InputGroupCall
+    
+                # This will throw if there is no active VC
+                call_info = await self.pyrogram_client.send(
+                    GetGroupCall(
+                        peer=await self.pyrogram_client.resolve_peer(chat_id),
+                        limit=1
+                    )
+                )
+                logger.info(f"[DEBUG] Active group call info: {call_info}")
+            except Exception as e:
+                logger.error(f"[DEBUG] No active group call found for chat_id={chat_id} — {e}")
+    
             # Initialize chat state
             if chat_id not in self.queues:
                 self.queues[chat_id] = []
                 self.current_tracks[chat_id] = None
                 self.loop_modes[chat_id] = "off"
                 self.volumes[chat_id] = Config.DEFAULT_VOLUME
-                
+    
             if not file_path:
-                # Join with silence if no track yet
-                file_path = "silence.mp3"  # Provide a silent placeholder file
-            
+                file_path = "silence.mp3"  # placeholder
+    
+            logger.info(f"[DEBUG] Calling pytgcalls.play() with file={file_path}")
             await self.pytgcalls.play(
                 chat_id,
                 AudioPiped(file_path, HighQualityAudio.HIGH)
             )
-            # Set initial volume
+    
             volume = self.volumes.get(chat_id, Config.DEFAULT_VOLUME)
             await self.pytgcalls.change_volume_call(chat_id, volume)
-
+    
             logger.info(f"Joined voice chat in {chat_id}")
-            
+    
         except Exception as e:
-            logger.error(f"Failed to join voice chat {chat_id}: {e}")
+            logger.error(f"Failed to join voice chat {chat_id}: {e}", exc_info=True)
             raise
     
     async def leave_voice_chat(self, chat_id: int):
