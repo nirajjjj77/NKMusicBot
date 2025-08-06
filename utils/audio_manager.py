@@ -9,6 +9,7 @@ from typing import Dict, List, Optional
 from pytgcalls import PyTgCalls
 from pytgcalls.types import MediaStream as AudioPiped
 from pytgcalls.types.stream import AudioQuality as HighQualityAudio
+from pytgcalls.types import Update
 from pytgcalls.types import StreamEnded
 from pyrogram import Client
 from config import Config
@@ -38,9 +39,10 @@ class AudioManager:
         await self.pytgcalls.start()
 
         # Listen for stream ended events
-        @self.pytgcalls.on_stream_end()
-        async def stream_end_handler(_, update: StreamEnded):
-            await self._on_stream_end(_, update)
+        @self.pytgcalls.on_update()
+        async def stream_update_handler(_, update: Update):
+            if isinstance(update, StreamEnded):
+                await self._on_stream_end(_, update)
     
         logger.info("Audio manager initialized")
         
