@@ -1,0 +1,4 @@
+Defaulting to user installation because normal site-packages is not writeable
+Requirement already satisfied: pyrogram in c:\users\dell\appdata\roaming\python\python313\site-packages (2.0.106)
+Requirement already satisfied: pyaes==1.6.1 in c:\users\dell\appdata\roaming\python\python313\site-packages (from pyrogram) (1.6.1)
+Requirement already satisfied: pysocks==1.7.1 in c:\users\dell\appdata\roaming\python\python313\site-packages (from pyrogram) (1.7.1)
