@@ -2,6 +2,7 @@
 Audio Manager - Handles all audio playback and queue management
 """
 
+import os
 import logging
 import random
 import asyncio
@@ -85,7 +86,7 @@ class AudioManager:
                 self.volumes[chat_id] = Config.DEFAULT_VOLUME
     
             if not file_path:
-                file_path = "silence.mp3"  # placeholder
+                file_path = os.path.join(os.path.dirname(__file__), '../assets/silence.mp3')
     
             logger.info(f"[DEBUG] Calling pytgcalls.play() with file={file_path}")
             await self.pytgcalls.play(
