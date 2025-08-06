@@ -64,17 +64,14 @@ class AudioManager:
         try:
             logger.info(f"[DEBUG] Attempting to join VC in chat_id={chat_id}")
     
-            # Check if there is an active group call
+            from pyrogram.raw.functions.phone import GetGroupCall
+
             try:
-                from pyrogram.raw.functions.phone import GetGroupCall
-                from pyrogram.raw.types import InputGroupCall
-    
-                # This will throw if there is no active VC
-                call_info = await self.pyrogram_client.send(
+                call_info = await self.pyrogram_client.invoke(
                     GetGroupCall(
                         peer=await self.pyrogram_client.resolve_peer(chat_id),
                         limit=1
-                    )
+                   )
                 )
                 logger.info(f"[DEBUG] Active group call info: {call_info}")
             except Exception as e:
