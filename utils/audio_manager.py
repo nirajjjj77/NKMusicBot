@@ -71,10 +71,14 @@ class AudioManager:
                 # Join with silence if no track yet
                 file_path = "silence.mp3"  # Provide a silent placeholder file
             
-            await self.pytgcalls.join_group_call(
+            await self.pytgcalls.play(
                 chat_id,
                 AudioPiped(file_path, HighQualityAudio())
             )
+            # Set initial volume
+            volume = self.volumes.get(chat_id, Config.DEFAULT_VOLUME)
+            await self.pytgcalls.change_volume_call(chat_id, volume)
+            
             logger.info(f"Joined voice chat in {chat_id}")
             
         except Exception as e:
@@ -114,21 +118,31 @@ class AudioManager:
         """Play next track in queue"""
         if chat_id not in self.queues or not self.queues[chat_id]:
             return False
-            
+    
         next_track = self.queues[chat_id].pop(0)
         self.current_tracks[chat_id] = next_track
-        
+    
         try:
-            await self.pytgcalls.change_stream(
-                chat_id,
-                AudioPiped(next_track['file_path'], HighQualityAudio())
-            )
+            if await self.is_in_voice_chat(chat_id):
+                # Already in VC, just change the stream
+                await self.pytgcalls.change_stream(
+                    chat_id,
+                    AudioPiped(next_track['file_path'], HighQualityAudio())
+                )
+            else:
+                # Not in VC yet, start playing (this joins too)
+                await self.pytgcalls.play(
+                    chat_id,
+                    AudioPiped(next_track['file_path'], HighQualityAudio())
+                )
+    
+            # Set volume
             volume = self.volumes.get(chat_id, Config.DEFAULT_VOLUME)
             await self.pytgcalls.change_volume_call(chat_id, volume)
-            
+    
             logger.info(f"Playing {next_track['title']} in chat {chat_id}")
             return True
-            
+    
         except Exception as e:
             logger.error(f"Error playing track in {chat_id}: {e}")
             return False
