@@ -80,6 +80,7 @@ class MusicBot:
     async def initialize(self):
         """Initialize bot components"""
         await self.db.initialize()
+        await self.audio_manager.initialize()  # <-- ADD THIS
         logger.info("Bot initialized successfully")
         
     async def start_bot(self):
