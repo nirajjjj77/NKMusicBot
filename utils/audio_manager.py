@@ -73,12 +73,12 @@ class AudioManager:
             
             await self.pytgcalls.play(
                 chat_id,
-                AudioPiped(file_path, HighQualityAudio())
+                AudioPiped(file_path, HighQualityAudio.HIGH)
             )
             # Set initial volume
             volume = self.volumes.get(chat_id, Config.DEFAULT_VOLUME)
             await self.pytgcalls.change_volume_call(chat_id, volume)
-            
+
             logger.info(f"Joined voice chat in {chat_id}")
             
         except Exception as e:
@@ -127,13 +127,13 @@ class AudioManager:
                 # Already in VC, just change the stream
                 await self.pytgcalls.change_stream(
                     chat_id,
-                    AudioPiped(next_track['file_path'], HighQualityAudio())
+                    AudioPiped(next_track['file_path'], HighQualityAudio.HIGH)
                 )
             else:
                 # Not in VC yet, start playing (this joins too)
                 await self.pytgcalls.play(
                     chat_id,
-                    AudioPiped(next_track['file_path'], HighQualityAudio())
+                    AudioPiped(next_track['file_path'], HighQualityAudio.HIGH)
                 )
     
             # Set volume
@@ -252,7 +252,7 @@ class AudioManager:
             try:
                 await self.pytgcalls.change_stream(
                     chat_id,
-                    AudioPiped(current_track['file_path'], HighQualityAudio())
+                    AudioPiped(current_track['file_path'], HighQualityAudio.HIGH)
                 )
             except Exception as e:
                 logger.error(f"Error repeating song in {chat_id}: {e}")
